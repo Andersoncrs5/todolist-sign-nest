@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { Repository } from 'typeorm';
@@ -13,23 +13,6 @@ export class UserService {
     @InjectRepository(User)
     private readonly repository: Repository<User>
   ) {}
-
-  async createAsync(createUserDto: CreateUserDto) {
-    const queryRunner = this.repository.manager.connection.createQueryRunner();
-    await queryRunner.startTransaction();
-    
-    try {
-      const user = queryRunner.manager.create(User, createUserDto);
-      await queryRunner.manager.save(user);
-      await queryRunner.commitTransaction();
-      return user;
-    } catch (error) {
-      await queryRunner.rollbackTransaction();
-      throw error;
-    } finally {
-      await queryRunner.release();
-    }
-  }
 
   async findOneAsync(id: number) {
     if (!id) {
@@ -60,8 +43,8 @@ export class UserService {
         throw new NotFoundException('User not found');
       }
 
-      if(!updateUserDto.password){
-        throw new BadRequestException('Password is required')
+      if (!updateUserDto.password){
+        throw new BadRequestException('Password is required');
       }
 
       updateUserDto.password = await CryptoService.encrypt(updateUserDto.password);
@@ -71,7 +54,7 @@ export class UserService {
       return await this.repository.findOne({ where: { id } }); 
     } catch (error) {
       await queryRunner.rollbackTransaction();
-      throw error;
+      throw new InternalServerErrorException(error)
     } finally {
       await queryRunner.release();
     }
@@ -98,31 +81,12 @@ export class UserService {
       return 'User deleted';
     } catch (error) {
       await queryRunner.rollbackTransaction();
-      throw error;
+      throw new InternalServerErrorException(error)
     } finally {
       await queryRunner.release();
     }
   }
 
-  async LoginAsync(userDto: LoginUserDTO): Promise<boolean> {
-    try {
-      const email = userDto.email;
-      const foundUser = await this.repository.findOne({ where: { email } });
   
-      if (!foundUser) {
-        return false;
-      }
-  
-      const isPasswordCorrect = await CryptoService.compare(userDto.password, foundUser.password);
-  
-      if (!isPasswordCorrect) {
-        return false;
-      }
-  
-      return true;
-    } catch (error) {
-      throw error;
-    }
-  }  
 
 }

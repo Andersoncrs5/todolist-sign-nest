@@ -1,36 +1,33 @@
-import { Controller, Get, Post, Body, Put, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Put, Param, Delete, UseGuards, Req } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { LoginUserDTO } from './dto/login-user.dto';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { ApiBearerAuth, ApiBody } from '@nestjs/swagger';
 
+@UseGuards(JwtAuthGuard)
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @Post()
-  async create(@Body() createUserDto: CreateUserDto) {
-    return await this.userService.createAsync(createUserDto);
+  @Get()
+  @ApiBearerAuth()
+  async findOne(@Req() req) {
+    return await this.userService.findOneAsync(req.user.sub);
   }
 
-  @Get(':id')
-  async findOne(@Param('id') id: string) {
-    return await this.userService.findOneAsync(+id);
+  @Put()
+  @ApiBearerAuth()
+  @ApiBody({ type: UpdateUserDto })
+  async update(@Req() req, @Body() updateUserDto: UpdateUserDto) {
+    return await this.userService.updateAsync(req.user.sub, updateUserDto);
   }
 
-  @Put(':id')
-  async update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return await this.userService.updateAsync(+id, updateUserDto);
-  }
-
-  @Delete(':id')
-  async remove(@Param('id') id: string) {
-    return await this.userService.removeAsync(+id);
-  }
-
-  @Post("login")
-  async login(@Body() user: LoginUserDTO): Promise<boolean>{
-    return await this.userService.LoginAsync(user);
+  @Delete()
+  @ApiBearerAuth()
+  async remove(@Req() req) {
+    return await this.userService.removeAsync(req.user.sub);
   }
 
 }

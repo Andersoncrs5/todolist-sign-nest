@@ -4,9 +4,12 @@ import { UserModule } from './user/user.module';
 import { TaskModule } from './task/task.module';
 import { User } from './user/entities/user.entity';
 import { Task } from './task/entities/task.entity';
+import { AuthModule } from './auth/auth.module';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
+    ConfigModule.forRoot(),
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: process.env.DB_HOST || 'localhost',
@@ -20,6 +23,7 @@ import { Task } from './task/entities/task.entity';
     }),
     UserModule,
     TaskModule,
+    AuthModule,
   ],
 })
 export class AppModule {}

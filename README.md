@@ -58,7 +58,10 @@ Step 4: Run the application
     
 Your API will be available at http://localhost:3000.
 
-API Documentation
+## API Documentation
 The API is documented using Swagger, and you can access the interactive documentation at:
 
-  http://localhost:3000/api
+http://localhost:3000/api
+
+## New Features
+- JWT with refresh and logout

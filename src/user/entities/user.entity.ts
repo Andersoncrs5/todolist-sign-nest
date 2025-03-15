@@ -16,6 +16,9 @@ export class User {
     @Column({ type: "varchar", length: 250 })
     password: string;
 
+    @Column({ type: "varchar" , length: 500, nullable: true})
+    refreshToken: string | null;
+
     @OneToMany(() => Task, (task) => task.user)
     tasks: Task[];
 
@@ -28,7 +31,7 @@ export class User {
     @BeforeInsert()
     async hashPassword() {
         if (this.password) {
-            this.password = await bcrypt.hash(this.password, 10);
+            this.password = await bcrypt.hash(this.password, 15);
         }
     }
 }
