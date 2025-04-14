@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, HttpCode, HttpStatus, Post, Req, UseGuards } from '@nestjs/common';
 import { LoginUserDTO } from 'src/user/dto/login-user.dto';
 import { UserService } from 'src/user/user.service';
 import { AuthService } from './auth.service';
@@ -7,31 +7,34 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { RefreshTokenDTO } from 'src/user/dto/refresh-token.dto';
 import { ApiBody } from '@nestjs/swagger';
 
-
 @Controller('auth')
 export class AuthController {
-    constructor(private service: AuthService) {}
+  constructor(private service: AuthService) {}
 
-  @Post("login")
+  @Post("/login")
   @ApiBody({ type: LoginUserDTO })
+  @HttpCode(HttpStatus.OK)
   async login(@Body() user: LoginUserDTO){
     return await this.service.LoginAsync(user);
   }
 
-  @Post()
+  @Post("/register")
   @ApiBody({ type: CreateUserDto })
-  async create(@Body() createUserDto: CreateUserDto) {
+  @HttpCode(HttpStatus.OK)
+  async register(@Body() createUserDto: CreateUserDto) {
     return await this.service.createAsync(createUserDto);
   }
 
-  @Post('logout')
+  @Post('/logout')
   @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
   async logout(@Req() req) {
     return await this.service.logout(req.user.sub);
   }
 
-  @Post('refresh')
+  @Post('/refresh')
   @ApiBody({ type: RefreshTokenDTO })
+  @HttpCode(HttpStatus.OK)
   async refreshToken(@Body() refreshTokenDto: RefreshTokenDTO) {
     return await this.service.refreshToken(refreshTokenDto.refresh_token);
   }

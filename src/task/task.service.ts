@@ -6,6 +6,7 @@ import { Repository } from 'typeorm';
 import { Task } from './entities/task.entity';
 import { User } from 'src/user/entities/user.entity';
 import { CryptoService } from 'CryptoService';
+import { UserService } from 'src/user/user.service';
 
 @Injectable()
 export class TaskService {
@@ -13,7 +14,9 @@ export class TaskService {
     @InjectRepository(Task)
     private readonly repository : Repository<Task>,
     @InjectRepository(User)
-    private readonly userRepository : Repository<User>
+    private readonly userRepository : Repository<User>,
+    private readonly userService: UserService
+
   ){}
 
   async create(createTaskDto: CreateTaskDto, id: number) {
@@ -21,15 +24,7 @@ export class TaskService {
     await queryRunner.startTransaction();
   
     try {
-      if (!id) {
-        throw new BadRequestException('User ID is required');
-      }
-  
-      const user: User | null = await queryRunner.manager.findOne(User, { where: { id } });
-  
-      if (!user) {
-        throw new NotFoundException(`User not found with ID ${id}`);
-      }
+      const user: User = await this.userService.findOneAsync(id);
   
       const taskData = { ...createTaskDto, user };
       const task = queryRunner.manager.create(Task, taskData);
@@ -48,15 +43,7 @@ export class TaskService {
   
   async findAllOfUser(id: number) {
     try {
-      if (!id) {
-        throw new BadRequestException('User ID is required');
-      }
-
-      const user: User | null = await this.userRepository.findOne({ where: {id}});
-      
-      if (user == null) {
-        throw new NotFoundException('User not found with id ' + id);
-      }
+      const user: User = await this.userService.findOneAsync(id);
 
       const tasks: Task[] = await this.repository.find({ where: { user: { id } } });
 
@@ -89,15 +76,7 @@ export class TaskService {
     await queryRunner.startTransaction();
 
     try {
-      if (!id) {
-        throw new BadRequestException('ID is required');
-      }
-
-      const task: Task | null = await queryRunner.manager.findOne(Task, { where: { id } });
-
-      if (!task) {
-        throw new NotFoundException('Task not found');
-      }
+      const task: Task = await this.findOne(id);
 
       await queryRunner.manager.update(Task, id, updateTaskDto);
       
@@ -118,15 +97,7 @@ export class TaskService {
     await queryRunner.startTransaction();
   
     try {
-      if (!id) {
-        throw new BadRequestException('ID is required');
-      }
-  
-      const task: Task | null = await queryRunner.manager.findOne(Task, { where: { id } });
-
-      if (task == null) {
-        throw new NotFoundException('Task not found');
-      }
+      const task: Task = await this.findOne(id);
 
       await queryRunner.manager.delete(Task, id);
       await queryRunner.commitTransaction();
@@ -145,15 +116,7 @@ export class TaskService {
     await queryRunner.startTransaction();
   
     try {
-      if (!id) {
-        throw new BadRequestException('ID is required');
-      }
-  
-      const task = await queryRunner.manager.findOne(Task, { where: { id } });
-  
-      if (!task) {
-        throw new NotFoundException('Task not found');
-      }
+      const task: Task = await this.findOne(id);
   
       task.done = !task.done;
   

@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { ConflictException, Injectable, InternalServerErrorException, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CryptoService } from 'CryptoService';
 import { LoginUserDTO } from 'src/user/dto/login-user.dto';
@@ -15,33 +15,37 @@ export class AuthService {
       private jwtService: JwtService,
     ){}
 
-    async LoginAsync(userDto: LoginUserDTO) {
-        try {
-          const email = userDto.email;
-          const foundUser = await this.repository.findOne({ where: { email } });
-      
-          if (!foundUser) {
-            return false;
-          }
-      
-          const isPasswordCorrect = await CryptoService.compare(userDto.password, foundUser.password);
-      
-          if (!isPasswordCorrect) {
-            return false;
-          }
-      
-           const payload = { sub: foundUser.id, email: foundUser.email };
-           const accessToken = this.jwtService.sign(payload); 
-
-           const refreshToken = this.jwtService.sign(payload, { expiresIn: '7d' });
-
-           foundUser.refreshToken = refreshToken;
-           await this.repository.save(foundUser);
-
-           return { access_token: accessToken, refresh_token: refreshToken };
-        } catch (error) {
-          throw new InternalServerErrorException(error)
+    async LoginAsync(userDto: LoginUserDTO): Promise<{
+      access_token: string;
+      refresh_token: string;
+      }> {
+      try {
+        const email = userDto.email;
+        const foundUser = await this.repository.findOne({ where: { email } });
+    
+        if (!foundUser) {
+          throw new UnauthorizedException('Email in used');
         }
+    
+        const isPasswordCorrect = await CryptoService.compare(userDto.password, foundUser.password);
+    
+        if (!isPasswordCorrect) {
+          throw new UnauthorizedException();
+        }
+    
+        const payload = { sub: foundUser.id, email: foundUser.email };
+        const accessToken = this.jwtService.sign(payload); 
+
+        const refreshToken = this.jwtService.sign(payload, { expiresIn: '7d' });
+
+        foundUser.refreshToken = refreshToken;
+        await this.repository.save(foundUser);
+
+        return { access_token: accessToken, refresh_token: refreshToken };
+      } catch (error) {
+        console.log(error);
+        throw new InternalServerErrorException(error)
+      }
     
     }  
 
@@ -57,7 +61,7 @@ export class AuthService {
           });
   
           if (existingUser) {
-              throw new InternalServerErrorException("E-mail exists");
+              throw new ConflictException("E-mail exists");
           }
           
           const user = queryRunner.manager.create(User, createUserDto);
@@ -74,6 +78,7 @@ export class AuthService {
   
           return { access_token: accessToken, refresh_token: refreshToken };
       } catch (error) {
+          console.log(error);
           await queryRunner.rollbackTransaction(); 
           throw new InternalServerErrorException(error.message);
       } finally {
@@ -112,6 +117,7 @@ export class AuthService {
       
           return { access_token: newAccessToken };
         } catch (error) {
+          console.log(error);
           throw new UnauthorizedException('Refresh token inválido ou expirado');
         }
       }

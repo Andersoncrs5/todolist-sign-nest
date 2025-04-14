@@ -11,7 +11,6 @@ export class LoginUserDTO {
     @Transform(({ value }) => value.trim() )
     @Transform(({ value }) => value.toLowerCase() )
     @Transform(({ value }) => sanitizeHtml(value) )
-    @ApiProperty({ example : "" })
     email: string;
     
     @IsString({ message: "The field password should be a string" })
@@ -20,6 +19,5 @@ export class LoginUserDTO {
     @Transform(({ value }) => value.trim() )
     @Transform(({ value }) => value.toLowerCase() )
     @Transform(({ value }) => sanitizeHtml(value) )
-    @ApiProperty({ example : "" })
     password: string;
 }

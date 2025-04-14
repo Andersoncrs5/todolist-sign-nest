@@ -33,15 +33,7 @@ export class UserService {
     await queryRunner.startTransaction();
 
     try {
-      if (!id) {
-        throw new BadRequestException('Id is required');
-      }
-
-      const user: User | null = await queryRunner.manager.findOne(User, { where: { id } });
-
-      if (!user) {
-        throw new NotFoundException('User not found');
-      }
+      const user: User = await this.findOneAsync(id);
 
       if (!updateUserDto.password){
         throw new BadRequestException('Password is required');
@@ -65,15 +57,7 @@ export class UserService {
     await queryRunner.startTransaction();
 
     try {
-      if (!id) {
-        throw new BadRequestException('Id is required');
-      }
-
-      const user: User | null = await queryRunner.manager.findOne(User, { where: { id } });
-
-      if (!user) {
-        throw new NotFoundException('User not found');
-      }
+      const user: User = await this.findOneAsync(id);
 
       await queryRunner.manager.delete(User, id);
       await queryRunner.commitTransaction();

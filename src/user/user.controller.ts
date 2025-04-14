@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Put, Param, Delete, UseGuards, Req } from '@nestjs/common';
+import { Controller, Get, Post, Body, Put, Param, Delete, UseGuards, Req, HttpCode, HttpStatus } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -13,12 +13,14 @@ export class UserController {
 
   @Get()
   @ApiBearerAuth()
+  @HttpCode(HttpStatus.OK)
   async findOne(@Req() req) {
     return await this.userService.findOneAsync(req.user.sub);
   }
 
   @Put()
   @ApiBearerAuth()
+  @HttpCode(HttpStatus.OK)
   @ApiBody({ type: UpdateUserDto })
   async update(@Req() req, @Body() updateUserDto: UpdateUserDto) {
     return await this.userService.updateAsync(req.user.sub, updateUserDto);
@@ -26,8 +28,8 @@ export class UserController {
 
   @Delete()
   @ApiBearerAuth()
+  @HttpCode(HttpStatus.OK)
   async remove(@Req() req) {
     return await this.userService.removeAsync(req.user.sub);
   }
-
 }
