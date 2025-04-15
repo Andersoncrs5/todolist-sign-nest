@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -13,13 +13,11 @@ export class TaskService {
   constructor(
     @InjectRepository(Task)
     private readonly repository : Repository<Task>,
-    @InjectRepository(User)
-    private readonly userRepository : Repository<User>,
     private readonly userService: UserService
 
   ){}
 
-  async create(createTaskDto: CreateTaskDto, id: number) {
+  async create(createTaskDto: CreateTaskDto, id: number): Promise<Task> {
     const queryRunner = this.repository.manager.connection.createQueryRunner();
     await queryRunner.startTransaction();
   
@@ -41,19 +39,19 @@ export class TaskService {
     }
   }
   
-  async findAllOfUser(id: number) {
+  async findAllOfUser(id: number): Promise<Task[]> {
     try {
       const user: User = await this.userService.findOneAsync(id);
 
       const tasks: Task[] = await this.repository.find({ where: { user: { id } } });
 
-      return tasks
+      return tasks;
     } catch (error) {
-      throw error;
+      throw new InternalServerErrorException(error);
     }
   }
 
-  async findOne(id: number) {
+  async findOne(id: number): Promise<Task> {
     try {
       if (!id) {
         throw new BadRequestException('User ID is required');

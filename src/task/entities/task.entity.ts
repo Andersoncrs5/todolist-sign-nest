@@ -7,16 +7,16 @@ export class Task {
     @PrimaryGeneratedColumn()
     id: number
 
-    @Column({type:"varchar", length : 150 })
+    @Column({type:"varchar", length : 150, nullable: false })
     title: string
 
-    @Column({type:"varchar", length : 300 })
+    @Column({type:"varchar", length : 300, nullable: false })
     description: string
 
-    @Column({ default: true })
-    done: boolean
+    @Column({ default: true, nullable: false })
+    done: boolean = true;
 
-    @ManyToOne(() => User, (user) => user.tasks, { onDelete : 'CASCADE' } )
+    @ManyToOne(() => User, (user) => user.tasks, { onDelete : 'CASCADE', nullable: false })
     user: User;
 
     @CreateDateColumn()

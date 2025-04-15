@@ -18,7 +18,7 @@ export class TaskController {
     return await this.taskService.create(createTaskDto, req.user.sub);
   }
 
-  @Get('/findAllOfUser')
+  @Get('/my-tasks')
   @HttpCode(HttpStatus.OK)
   async findAllOfUser(@Req() req) {
     return await this.taskService.findAllOfUser(req.user.sub);
