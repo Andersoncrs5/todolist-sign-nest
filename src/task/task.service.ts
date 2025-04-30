@@ -4,9 +4,9 @@ import { UpdateTaskDto } from './dto/update-task.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Task } from './entities/task.entity';
-import { User } from 'src/user/entities/user.entity';
-import { CryptoService } from 'CryptoService';
-import { UserService } from 'src/user/user.service';
+import { User } from '..//user/entities/user.entity';
+import { CryptoService } from '../../CryptoService';
+import { UserService } from '../user/user.service';
 
 @Injectable()
 export class TaskService {
@@ -53,7 +53,7 @@ export class TaskService {
 
   async findOne(id: number): Promise<Task> {
     try {
-      if (!id) {
+      if (!id || id <= 0 || isNaN(id) ) {
         throw new BadRequestException('User ID is required');
       }
 

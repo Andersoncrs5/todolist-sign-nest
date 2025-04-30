@@ -1,11 +1,11 @@
 import { ConflictException, Injectable, InternalServerErrorException, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { CryptoService } from 'CryptoService';
+import { CryptoService } from '../../CryptoService';
 import { LoginUserDTO } from 'src/user/dto/login-user.dto';
-import { User } from 'src/user/entities/user.entity';
+import { User } from '../user/entities/user.entity';
 import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
-import { CreateUserDto } from 'src/user/dto/create-user.dto';
+import { CreateUserDto } from '../user/dto/create-user.dto';
 
 @Injectable()
 export class AuthService {
@@ -24,7 +24,7 @@ export class AuthService {
         const foundUser = await this.repository.findOne({ where: { email } });
     
         if (!foundUser) {
-          throw new UnauthorizedException('Email in used');
+          throw new UnauthorizedException();
         }
     
         const isPasswordCorrect = await CryptoService.compare(userDto.password, foundUser.password);

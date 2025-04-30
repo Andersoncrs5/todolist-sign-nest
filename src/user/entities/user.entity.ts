@@ -1,6 +1,6 @@
 import { BeforeInsert, BeforeUpdate, Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import * as bcrypt from "bcrypt";
-import { Task } from "src/task/entities/task.entity";
+import { Task } from "../../task/entities/task.entity";
 
 @Entity()
 export class User {

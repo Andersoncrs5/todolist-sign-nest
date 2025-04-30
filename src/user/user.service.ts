@@ -4,7 +4,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
-import { CryptoService } from 'CryptoService';
+import { CryptoService } from '../../CryptoService';
 import { LoginUserDTO } from './dto/login-user.dto';
 
 @Injectable()
@@ -15,7 +15,7 @@ export class UserService {
   ) {}
 
   async findOneAsync(id: number) {
-    if (!id) {
+    if (!id || id <= 0 || isNaN(id) ) {
       throw new BadRequestException('User ID is required');
     }
 
