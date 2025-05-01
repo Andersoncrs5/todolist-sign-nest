@@ -5,6 +5,7 @@ import { Task } from './entities/task.entity';
 import { Repository, EntityManager, QueryRunner } from 'typeorm';
 import { UserService } from '../user/user.service';
 import { BadRequestException } from '@nestjs/common';
+import { describe } from 'node:test';
 
 describe('TaskService', () => {
   let service: TaskService;
@@ -70,6 +71,13 @@ describe('TaskService', () => {
       expect(service.findOne(0)).rejects.toThrow(BadRequestException)
       expect(service.findOne(-1)).rejects.toThrow(BadRequestException)
       expect(service.findOne(NaN)).rejects.toThrow(BadRequestException)
+    });
+    
+  });
+
+  describe('Test of method findAllOfUser', () => {
+    it('', ()=> {
+      
     });
   });
 

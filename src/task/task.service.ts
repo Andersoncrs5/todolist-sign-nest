@@ -21,11 +21,13 @@ export class TaskService {
     const queryRunner = this.repository.manager.connection.createQueryRunner();
     await queryRunner.startTransaction();
   
-    try {
-      const user: User = await this.userService.findOneAsync(id);
+    const user: User = await this.userService.findOneAsync(id);
   
-      const taskData = { ...createTaskDto, user };
-      const task = queryRunner.manager.create(Task, taskData);
+    const taskData = { ...createTaskDto, user };
+
+    try {
+      
+      const task: Task = queryRunner.manager.create(Task, taskData);
       
       await queryRunner.manager.save(task);
       await queryRunner.commitTransaction();
@@ -40,42 +42,34 @@ export class TaskService {
   }
   
   async findAllOfUser(id: number): Promise<Task[]> {
-    try {
-      const user: User = await this.userService.findOneAsync(id);
+    const user: User = await this.userService.findOneAsync(id);
 
-      const tasks: Task[] = await this.repository.find({ where: { user: { id } } });
-
-      return tasks;
-    } catch (error) {
-      throw new InternalServerErrorException(error);
-    }
+    return await this.repository.find({ where: { user: { id } } });
   }
 
   async findOne(id: number): Promise<Task> {
-    try {
-      if (!id || id <= 0 || isNaN(id) ) {
-        throw new BadRequestException('User ID is required');
-      }
-
-      const task: Task | null = await this.repository.findOne({where : { id } })
-      
-      if (task == null) {
-        throw new NotFoundException('Task not found');
-      }
-
-      return task
-    } catch (error) {
-      throw error;
+    
+    if (!id || id <= 0 || isNaN(id) ) {
+      throw new BadRequestException('User ID is required');
     }
+
+    const task: Task | null = await this.repository.findOne({where : { id } })
+    
+    if (task == null) {
+      throw new NotFoundException('Task not found');
+    }
+
+    return task
   }
 
   async update(id: number, updateTaskDto: UpdateTaskDto) {
     const queryRunner = this.repository.manager.connection.createQueryRunner();
     await queryRunner.startTransaction();
 
-    try {
-      const task: Task = await this.findOne(id);
+    const task: Task = await this.findOne(id);
 
+    try {
+      
       await queryRunner.manager.update(Task, id, updateTaskDto);
       
       const updatedTask = await queryRunner.manager.findOne(Task, { where: { id } });
@@ -94,8 +88,9 @@ export class TaskService {
     const queryRunner = this.repository.manager.connection.createQueryRunner();
     await queryRunner.startTransaction();
   
+    const task: Task = await this.findOne(id);
+
     try {
-      const task: Task = await this.findOne(id);
 
       await queryRunner.manager.delete(Task, id);
       await queryRunner.commitTransaction();
@@ -113,8 +108,9 @@ export class TaskService {
     const queryRunner = this.repository.manager.connection.createQueryRunner();
     await queryRunner.startTransaction();
   
+    const task: Task = await this.findOne(id);
+
     try {
-      const task: Task = await this.findOne(id);
   
       task.done = !task.done;
   

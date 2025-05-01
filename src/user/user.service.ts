@@ -32,14 +32,16 @@ export class UserService {
     const queryRunner = this.repository.manager.connection.createQueryRunner();
     await queryRunner.startTransaction();
 
+    const user: User = await this.findOneAsync(id);
+
+    if (!updateUserDto.password){
+      throw new BadRequestException('Password is required');
+    }
+
+    updateUserDto.password = await CryptoService.encrypt(updateUserDto.password);
+
     try {
-      const user: User = await this.findOneAsync(id);
-
-      if (!updateUserDto.password){
-        throw new BadRequestException('Password is required');
-      }
-
-      updateUserDto.password = await CryptoService.encrypt(updateUserDto.password);
+      
       await queryRunner.manager.update(User, id, updateUserDto);
       await queryRunner.commitTransaction();
 
@@ -55,10 +57,10 @@ export class UserService {
   async removeAsync(id: number) {
     const queryRunner = this.repository.manager.connection.createQueryRunner();
     await queryRunner.startTransaction();
+    
+    const user: User = await this.findOneAsync(id);
 
     try {
-      const user: User = await this.findOneAsync(id);
-
       await queryRunner.manager.delete(User, id);
       await queryRunner.commitTransaction();
 
