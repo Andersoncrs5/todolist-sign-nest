@@ -15,7 +15,7 @@ export class AuthController {
   @ApiBody({ type: LoginUserDTO })
   @HttpCode(HttpStatus.OK)
   async login(@Body() user: LoginUserDTO){
-    return await this.service.LoginAsync(user);
+    return await this.service.loginAsync(user);
   }
 
   @Post("/register")

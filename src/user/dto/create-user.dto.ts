@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Transform } from "class-transformer";
-import { IsEmail, IsNotEmpty, IsString, Length } from "class-validator";
+import { IsEmail, IsNotEmpty, IsOptional, IsString, Length } from "class-validator";
 import * as sanitizeHtml from "sanitize-html";
 
 export class CreateUserDto {
@@ -8,6 +8,7 @@ export class CreateUserDto {
     @IsNotEmpty({ message: "The field name cannot be null" })
     @Length(1, 100, { message: "The max length of name is 100 and min is 1" })
     @Transform(({ value }) => sanitizeHtml(value)) 
+    @ApiProperty({ default: "user" })
     name: string;
 
     @IsString({ message: "The field email should be a string" })
@@ -17,6 +18,7 @@ export class CreateUserDto {
     @Transform(({ value }) => value.trim() )
     @Transform(({ value }) => value.toLowerCase() )
     @Transform(({ value }) => sanitizeHtml(value)) 
+    @ApiProperty({ default: "user@example.com" })
     email: string;
     
     @IsString({ message: "The field password should be a string" })
@@ -25,6 +27,9 @@ export class CreateUserDto {
     @Transform(({ value }) => value.trim() )
     @Transform(({ value }) => value.toLowerCase() )
     @Transform(({ value }) => sanitizeHtml(value)) 
+    @ApiProperty({ default: "12345678" })
     password: string;
-}
 
+    @IsOptional()    
+    version: number;
+}

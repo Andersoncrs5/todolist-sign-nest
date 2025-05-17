@@ -36,6 +36,7 @@ class-validator: A library for class-based validation of data objects.
 
 class-transformer: A library used in combination with class-validator for transforming and validating input data.
 
+jwt 
 
 ## How to Run the Project
 
@@ -64,4 +65,6 @@ The API is documented using Swagger, and you can access the interactive document
 http://localhost:3000/api
 
 ## New Features
-- JWT with refresh and logout
+- Otimizations 
+- exceptions globals
+- Transactional 

@@ -1,128 +1,83 @@
-import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Task } from './entities/task.entity';
-import { User } from '..//user/entities/user.entity';
-import { CryptoService } from '../../CryptoService';
+import { User } from '../user/entities/user.entity';
 import { UserService } from '../user/user.service';
+import { Transactional } from 'typeorm-transactional';
+import { IPaginationOptions, paginate } from 'nestjs-typeorm-paginate';
 
 @Injectable()
 export class TaskService {
   constructor(
     @InjectRepository(Task)
-    private readonly repository : Repository<Task>,
-    private readonly userService: UserService
+    private readonly repository: Repository<Task>,
+    private readonly userService: UserService,
+  ) {}
 
-  ){}
-
+  @Transactional()
   async create(createTaskDto: CreateTaskDto, id: number): Promise<Task> {
-    const queryRunner = this.repository.manager.connection.createQueryRunner();
-    await queryRunner.startTransaction();
-  
     const user: User = await this.userService.findOneAsync(id);
-  
     const taskData = { ...createTaskDto, user };
-
-    try {
-      
-      const task: Task = queryRunner.manager.create(Task, taskData);
-      
-      await queryRunner.manager.save(task);
-      await queryRunner.commitTransaction();
-      
-      return task;
-    } catch (error) {
-      await queryRunner.rollbackTransaction();
-      throw error;
-    } finally {
-      await queryRunner.release();
-    }
+    const task: Task = this.repository.create(taskData);
+    return await this.repository.save(task);
   }
-  
-  async findAllOfUser(id: number): Promise<Task[]> {
-    const user: User = await this.userService.findOneAsync(id);
 
-    return await this.repository.find({ where: { user: { id } } });
+  async findAllOfUser(userId: number, options: IPaginationOptions) {
+    const queryBuilder = this.repository.createQueryBuilder('task');
+
+    queryBuilder
+    .where('task.userId = :userId', { userId }) 
+    .orderBy('task.id', 'DESC');
+
+    return paginate<Task>(queryBuilder, options);
   }
 
   async findOne(id: number): Promise<Task> {
-    
-    if (!id || id <= 0 || isNaN(id) ) {
+    if (!id || id <= 0 || isNaN(id)) {
       throw new BadRequestException('User ID is required');
     }
 
-    const task: Task | null = await this.repository.findOne({where : { id } })
-    
-    if (task == null) {
+    const task: Task | null = await this.repository.findOne({ where: { id } });
+
+    if (!task) {
       throw new NotFoundException('Task not found');
     }
 
-    return task
+    return task;
   }
 
+  @Transactional()
   async update(id: number, updateTaskDto: UpdateTaskDto) {
-    const queryRunner = this.repository.manager.connection.createQueryRunner();
-    await queryRunner.startTransaction();
+    const task: Task = await this.findOne(id); 
 
-    const task: Task = await this.findOne(id);
-
-    try {
-      
-      await queryRunner.manager.update(Task, id, updateTaskDto);
-      
-      const updatedTask = await queryRunner.manager.findOne(Task, { where: { id } });
-      await queryRunner.commitTransaction();
-      
-      return updatedTask;
-    } catch (error) {
-      await queryRunner.rollbackTransaction();
-      throw error;
-    } finally {
-      await queryRunner.release();
-    }
+    const updateTask = this.repository.create({
+      ...task,
+      ...updateTaskDto,
+      id: task.id,
+      version: task.version
+    })
+    
+    return await this.repository.save(updateTask);
   }
 
+  @Transactional()
   async remove(id: number) {
-    const queryRunner = this.repository.manager.connection.createQueryRunner();
-    await queryRunner.startTransaction();
-  
-    const task: Task = await this.findOne(id);
-
-    try {
-
-      await queryRunner.manager.delete(Task, id);
-      await queryRunner.commitTransaction();
-      
-      return 'task deleted';
-    } catch (error) {
-      await queryRunner.rollbackTransaction();
-      throw error;
-    } finally {
-      await queryRunner.release();
-    }
+    await this.findOne(id); 
+    await this.repository.delete(id);
+    return 'task deleted';
   }
 
+  @Transactional()
   async changeStatusTaskAsync(id: number): Promise<Task> {
-    const queryRunner = this.repository.manager.connection.createQueryRunner();
-    await queryRunner.startTransaction();
-  
     const task: Task = await this.findOne(id);
-
-    try {
-  
-      task.done = !task.done;
-  
-      await queryRunner.manager.save(task);
-      await queryRunner.commitTransaction();
-      
-      return task;
-    } catch (error) {
-      await queryRunner.rollbackTransaction();
-      throw error;
-    } finally {
-      await queryRunner.release();
-    }
+    task.done = !task.done;
+    return await this.repository.save(task);
   }
 }

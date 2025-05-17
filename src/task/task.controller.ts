@@ -1,9 +1,11 @@
-import { Controller, Get, Post, Body, Put, Param, Delete, Req, UseGuards, HttpCode, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Post, Body, Put, Param, Delete, Req, UseGuards, HttpCode, HttpStatus, Query } from '@nestjs/common';
 import { TaskService } from './task.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
 import { ApiBearerAuth, ApiBody } from '@nestjs/swagger';
+import { IPaginationOptions, Pagination } from 'nestjs-typeorm-paginate';
+import { Task } from './entities/task.entity';
 
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
@@ -17,13 +19,20 @@ export class TaskController {
   async create(@Body() createTaskDto: CreateTaskDto, @Req() req ) {
     return await this.taskService.create(createTaskDto, req.user.sub);
   }
-
-  @Get('/my-tasks')
-  @HttpCode(HttpStatus.OK)
-  async findAllOfUser(@Req() req) {
-    return await this.taskService.findAllOfUser(req.user.sub);
-  }
   
+  @Get('/my-tasks')
+  async findAllOfUser(
+    @Query('page') page = 1,
+    @Query('limit') limit = 10,
+    @Req() req
+  ): Promise<Pagination<Task>> {
+    const options: IPaginationOptions = {
+      page: Number(page),
+      limit: Number(limit),
+    };
+    return this.taskService.findAllOfUser(req.user.sub, options);
+  }
+
   @Get('/change-status-task/:id')
   @HttpCode(HttpStatus.OK)
   async changeStatusTask(@Param('id') id: number ) {

@@ -1,9 +1,8 @@
 import { User } from "../../user/entities/user.entity";
-import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn, VersionColumn } from "typeorm";
 
 @Entity()
 export class Task {
-
     @PrimaryGeneratedColumn()
     id: number
 
@@ -18,6 +17,9 @@ export class Task {
 
     @ManyToOne(() => User, (user) => user.tasks, { onDelete : 'CASCADE', nullable: false })
     user: User;
+
+    @VersionColumn()
+    version: number;
 
     @CreateDateColumn()
     createdAt: Date

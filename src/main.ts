@@ -2,13 +2,18 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
-import { ValidationPipe } from '@nestjs/common'; // ⬅️ Import necessário
+import { ValidationPipe } from '@nestjs/common'; 
 import { config as dotenvConfig } from 'dotenv';
 import fastifyCors from '@fastify/cors';
+import { AllExceptionsFilter } from './utils/all-exceptions';
+import { initializeTransactionalContext } from 'typeorm-transactional';
+
 
 dotenvConfig();
 
 async function bootstrap() {
+  initializeTransactionalContext()
+
   const app = await NestFactory.create<NestFastifyApplication>(AppModule, new FastifyAdapter());
 
   await app.register(fastifyCors, {
@@ -16,6 +21,8 @@ async function bootstrap() {
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'] 
   });  
+
+  app.useGlobalFilters(new AllExceptionsFilter());
 
   app.useGlobalPipes(
     new ValidationPipe({
@@ -26,7 +33,7 @@ async function bootstrap() {
   );
 
   const swaggerConfig = new DocumentBuilder()
-    .setTitle('ToDo List API')
+    .setTitle('To Do List API')
     .setDescription('API for managing tasks with user authentication')
     .setVersion('1.0')
     .addBearerAuth()

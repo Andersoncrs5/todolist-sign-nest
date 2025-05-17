@@ -6,24 +6,40 @@ import { User } from './user/entities/user.entity';
 import { Task } from './task/entities/task.entity';
 import { AuthModule } from './auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
+import { addTransactionalDataSource } from 'typeorm-transactional';
+import { DataSource } from 'typeorm';
 
 @Module({
   imports: [
     ConfigModule.forRoot(),
-    TypeOrmModule.forRoot({
-      type: 'postgres',
-      host: process.env.DB_HOST || 'localhost',
-      port: 5432,
-      username: process.env.DB_USER || 'postgres',
-      password: process.env.DB_PASSWORD || '12345678',
-      database: process.env.DB_NAME || 'todolist_sign_nest',
-      entities: [User, Task],
-      synchronize: true,
-      autoLoadEntities: true,
-    }),
+    TypeOrmModule.forRootAsync({
+      useFactory()  {
+        return {
+          type:  'postgres',
+          host: String(process.env.DB_HOST) || '',
+          port:  Number(process.env.DB_PORT) || 5432,
+          username: String(process.env.DB_USER) || '',
+          password: String(process.env.DB_PASSWORD) || '',
+          database: String(process.env.DB_NAME) || '',
+          entities: [User, Task],
+          synchronize: true,
+          autoLoadEntities: true,
+        };
+      },
+      async dataSourceFactory(options) {
+        if (!options) {
+          throw new Error('Invalid options passed');
+        }
+
+        return addTransactionalDataSource(new DataSource(options));
+      },
+    },
+  ),
     UserModule,
     TaskModule,
     AuthModule,
+    
   ],
+  
 })
 export class AppModule {}

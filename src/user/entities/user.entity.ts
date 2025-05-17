@@ -1,4 +1,4 @@
-import { BeforeInsert, BeforeUpdate, Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { BeforeInsert, BeforeUpdate, Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn, VersionColumn } from "typeorm";
 import * as bcrypt from "bcrypt";
 import { Task } from "../../task/entities/task.entity";
 
@@ -21,6 +21,9 @@ export class User {
 
     @OneToMany(() => Task, (task) => task.user)
     tasks: Task[];
+
+    @VersionColumn()
+    version: number;
 
     @CreateDateColumn()
     createdAt: Date;

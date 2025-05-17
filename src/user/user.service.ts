@@ -1,21 +1,25 @@
-import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { CryptoService } from '../../CryptoService';
-import { LoginUserDTO } from './dto/login-user.dto';
+import { Transactional } from 'typeorm-transactional';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User)
-    private readonly repository: Repository<User>
+    private readonly repository: Repository<User>,
   ) {}
 
   async findOneAsync(id: number) {
-    if (!id || id <= 0 || isNaN(id) ) {
+    if (!id || id <= 0 || isNaN(id)) {
       throw new BadRequestException('User ID is required');
     }
 
@@ -28,51 +32,30 @@ export class UserService {
     return user;
   }
 
+  @Transactional()
   async updateAsync(id: number, updateUserDto: UpdateUserDto) {
-    const queryRunner = this.repository.manager.connection.createQueryRunner();
-    await queryRunner.startTransaction();
-
     const user: User = await this.findOneAsync(id);
 
-    if (!updateUserDto.password){
+    if (!updateUserDto.password) {
       throw new BadRequestException('Password is required');
     }
 
     updateUserDto.password = await CryptoService.encrypt(updateUserDto.password);
 
-    try {
-      
-      await queryRunner.manager.update(User, id, updateUserDto);
-      await queryRunner.commitTransaction();
+    const userToUpdate = this.repository.create({
+      ...user,
+      ...updateUserDto,
+      id: user.id,
+      version: user.version,
+    });
 
-      return await this.repository.findOne({ where: { id } }); 
-    } catch (error) {
-      await queryRunner.rollbackTransaction();
-      throw new InternalServerErrorException(error)
-    } finally {
-      await queryRunner.release();
-    }
+    return await this.repository.save(userToUpdate); 
   }
 
+  @Transactional()
   async removeAsync(id: number) {
-    const queryRunner = this.repository.manager.connection.createQueryRunner();
-    await queryRunner.startTransaction();
-    
-    const user: User = await this.findOneAsync(id);
-
-    try {
-      await queryRunner.manager.delete(User, id);
-      await queryRunner.commitTransaction();
-
-      return 'User deleted';
-    } catch (error) {
-      await queryRunner.rollbackTransaction();
-      throw new InternalServerErrorException(error)
-    } finally {
-      await queryRunner.release();
-    }
+    await this.findOneAsync(id);
+    await this.repository.delete(id);
+    return 'User deleted';
   }
-
-  
-
 }
