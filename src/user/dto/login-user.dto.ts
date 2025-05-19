@@ -20,6 +20,6 @@ export class LoginUserDTO {
     @Transform(({ value }) => value.trim() )
     @Transform(({ value }) => value.toLowerCase() )
     @Transform(({ value }) => sanitizeHtml(value)) 
-    @ApiProperty({ default: "user@example.com" })
+    @ApiProperty({ default: "12345678" })
     password: string;
 }

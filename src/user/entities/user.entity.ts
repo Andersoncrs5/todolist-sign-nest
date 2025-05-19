@@ -1,6 +1,7 @@
-import { BeforeInsert, BeforeUpdate, Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn, VersionColumn } from "typeorm";
+import { BeforeInsert, BeforeUpdate, Column, CreateDateColumn, Entity, OneToMany, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn, VersionColumn } from "typeorm";
 import * as bcrypt from "bcrypt";
 import { Task } from "../../task/entities/task.entity";
+import { RecoverPassword } from "./recoverPassoword.entity";
 
 @Entity()
 export class User {
@@ -21,6 +22,12 @@ export class User {
 
     @OneToMany(() => Task, (task) => task.user)
     tasks: Task[];
+
+    @OneToOne(() => RecoverPassword, (recover) => recover.user, {
+        cascade: true,
+        onDelete: 'CASCADE',
+    })
+    recoverPassword: RecoverPassword;
 
     @VersionColumn()
     version: number;

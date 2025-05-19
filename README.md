@@ -38,6 +38,10 @@ class-transformer: A library used in combination with class-validator for transf
 
 jwt 
 
+recover password system by email
+
+exceptions globals
+
 ## How to Run the Project
 
 Step 1: Clone the repository
@@ -65,6 +69,5 @@ The API is documented using Swagger, and you can access the interactive document
 http://localhost:3000/api
 
 ## New Features
-- Otimizations 
-- exceptions globals
-- Transactional 
+
+- recover password system by email

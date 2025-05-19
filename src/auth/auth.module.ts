@@ -6,11 +6,14 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { User } from '../user/entities/user.entity';
 import { JwtStrategy } from './jwt.strategy';
+import { UserModule } from 'src/user/user.module';
+import { RecoverPassword } from 'src/user/entities/recoverPassoword.entity';
 
 @Module({
   imports: [
     ConfigModule.forRoot(), 
-    TypeOrmModule.forFeature([User]),
+    TypeOrmModule.forFeature([User, RecoverPassword]),
+    UserModule,
     JwtModule.register({
       secret: process.env.JWT_SECRET,
       signOptions: { expiresIn: '24h' },

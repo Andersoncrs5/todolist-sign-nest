@@ -1,15 +1,32 @@
 import { Body, Controller, HttpCode, HttpStatus, Post, Req, UseGuards } from '@nestjs/common';
 import { LoginUserDTO } from '../user/dto/login-user.dto';
-import { UserService } from '../user/user.service';
 import { AuthService } from './auth.service';
 import { CreateUserDto } from '../user/dto/create-user.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { RefreshTokenDTO } from '../user/dto/refresh-token.dto';
 import { ApiBody } from '@nestjs/swagger';
+import { RequestPasswordResetDto } from './dtos/RequestPasswordReset.dto';
+import { ResetPasswordDto } from './dtos/ResetPassword.dto';
 
 @Controller('auth')
 export class AuthController {
   constructor(private service: AuthService) {}
+
+  @Post('forgot-password')
+  @ApiBody({ type: RequestPasswordResetDto })
+  @HttpCode(HttpStatus.OK)
+  async forgotPassword(@Body() dto: RequestPasswordResetDto) {
+    await this.service.requestPasswordReset(dto.email);
+    return { message: 'E-mail send with successfully!!!' };
+  }
+
+  @Post('reset-password')
+  @ApiBody({ type: ResetPasswordDto })
+  @HttpCode(HttpStatus.OK)
+  async resetPassword(@Body() dto: ResetPasswordDto) {
+    await this.service.resetPassword(dto.token, dto.password, dto.confirmPassword);
+    return { message: 'Senha recovered with success!!' };
+  }
 
   @Post("/login")
   @ApiBody({ type: LoginUserDTO })
