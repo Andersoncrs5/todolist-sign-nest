@@ -22,6 +22,8 @@ import { RecoverPassword } from 'src/user/entities/recoverPassoword.entity';
 import { randomUUID } from 'crypto';
 import { isUUID } from 'class-validator';
 import { UpdateUserDto } from 'src/user/dto/update-user.dto';
+import { ResponseToken } from './responses/responseTokens';
+import { UserMetricService } from 'src/user_metric/user_metric.service';
 
 @Injectable()
 export class AuthService {
@@ -31,34 +33,44 @@ export class AuthService {
     @InjectRepository(RecoverPassword)
     private readonly recoverRepository: Repository<RecoverPassword>,
     private jwtService: JwtService,
-    private readonly userService: UserService
+    private readonly userService: UserService,
+    private readonly metricService: UserMetricService
   ) {}
 
+  private readonly transporter = nodemailer.createTransport({
+      service: String(process.env.SERVICE),
+      auth: {
+        user: String(process.env.EMAIL),
+        pass: String(process.env.PASSWORD),
+      }
+    });
+
   @Transactional()
-  async loginAsync(userDto: LoginUserDTO): Promise<{
-    access_token: string;
-    refresh_token: string;
-  }> {
+  async loginAsync(userDto: LoginUserDTO) {
     const user = await this.repository.findOne({ where: { email: userDto.email } });
 
-    if (!user) {
-      throw new UnauthorizedException();
-    }
+    if (!user) throw new UnauthorizedException();
 
     const isPasswordCorrect = await CryptoService.compare(userDto.password, user.password);
-
-    if (!isPasswordCorrect) {
-      throw new UnauthorizedException();
-    }
+    if (!isPasswordCorrect) throw new UnauthorizedException();
 
     const payload = { sub: user.id, email: user.email };
-    const accessToken = this.jwtService.sign(payload);
-    const refreshToken = this.jwtService.sign(payload, { expiresIn: '7d' });
+
+
+    const accessToken = this.jwtService.sign(payload, { expiresIn: process.env.JWT_EXPIRE_ACCESS_TOKEN });
+    const refreshToken = this.jwtService.sign(payload, { expiresIn: process.env.JWT_EXPIRE_REFRESH_TOKEN });
 
     user.refreshToken = refreshToken;
     await this.repository.save(user);
 
-    return { access_token: accessToken, refresh_token: refreshToken };
+    const metric = await this.metricService.findOne(user)
+    metric.lastLoginAt = new Date()
+    await this.metricService.update(user, metric);
+
+    const expireAtAccessToken = new Date(Date.now() + Number(process.env.JWT_EXPIRE_ACCESS_TOKEN));
+    const expireAtRefreshToken = new Date(Date.now() + Number(process.env.JWT_EXPIRE_REFRESH_TOKEN));
+
+    return new ResponseToken(accessToken, refreshToken, expireAtAccessToken, expireAtRefreshToken);
   }
 
   @Transactional()
@@ -79,10 +91,14 @@ export class AuthService {
     const refreshToken = this.jwtService.sign(payload, { expiresIn: '7d' });
 
     user.refreshToken = refreshToken;
-    await this.repository.save(user);
+    const userSave = await this.repository.save(user);
+
+    const expireAtAccessToken = new Date(Date.now() + Number(process.env.JWT_EXPIRE_ACCESS_TOKEN));
+    const expireAtRefreshToken = new Date(Date.now() + Number(process.env.JWT_EXPIRE_REFRESH_TOKEN));
 
     await this.sendEmailOfWelcome(createUserDto.email, createUserDto.name);
-    return { access_token: accessToken, refresh_token: refreshToken };
+    await this.metricService.create(userSave);
+    return new ResponseToken(accessToken, refreshToken, expireAtAccessToken, expireAtRefreshToken);
   }
 
   @Transactional()
@@ -121,10 +137,10 @@ export class AuthService {
 
   @Transactional()
   async requestPasswordReset(email: string) {
-    if (!email) throw new BadRequestException('Email é obrigatório');
+    if (!email) throw new BadRequestException('Email is required');
 
     const user = await this.repository.findOne({ where: { email } });
-    if (!user) throw new NotFoundException('Usuário não encontrado');
+    if (!user) throw new NotFoundException('User not found');
 
     await this.recoverRepository.delete({ user: { id: user.id } });
 
@@ -145,13 +161,7 @@ export class AuthService {
   }
 
   async sendResetEmail(to: string, linkUrl: string, token: string) {
-    const transporter = nodemailer.createTransport({
-      service: String(process.env.SERVICE),
-      auth: {
-        user: String(process.env.EMAIL),
-        pass: String(process.env.PASSWORD),
-      }
-    });
+    
 
     if (token == null) { throw new BadRequestException('Token is required') }
 
@@ -161,7 +171,7 @@ export class AuthService {
     html = html.replace(/{{link}}/g, linkUrl);
     html = html.replace(/{{token}}/g, token);
 
-    await transporter.sendMail({
+    await this.transporter.sendMail({
       from: `"Support MyTask" <${process.env.EMAIL}>`,
       to,
       subject: 'Recupere sua senha',
@@ -212,14 +222,6 @@ export class AuthService {
   async sendEmailOfWelcome(to: string, name: string) {
     if (!to || !name ) { throw new NotFoundException('Error the send email of welcome') }
 
-    const transporter = nodemailer.createTransport({ 
-      service: String(process.env.SERVICE),
-      auth: {
-        user: String(process.env.EMAIL),
-        pass: String(process.env.PASSWORD),
-      }
-     })
-
     const filePath = path.join(process.cwd(), 'src', 'templates', 'welcome.email.html');
 
     if (!fs.existsSync(filePath)) {
@@ -232,12 +234,27 @@ export class AuthService {
     html = html.replace(/{{link}}/g, link);
     html = html.replace(/{{name}}/g, name);
 
-    await transporter.sendMail({
+    await this.transporter.sendMail({
       from: `"Support MyTask" ${process.env.EMAIL}`,
       to,
       subject: 'Welcome to MyTask',
       html
     });
+  }
+
+  @Transactional()
+  async receiveMetricByEmail(id: number) {
+    const user = await this.userService.findOneAsync(id);
+    const metric = await this.metricService.findOne(user);
+    metric.wishReceiveMetricByEmail = !metric.wishReceiveMetricByEmail
+    metric.version = metric.version
+
+    await this.metricService.update(user, metric);
+
+    return {
+      message: 'Status change with success!',
+      status: metric.wishReceiveMetricByEmail
+    }
   }
 
 }

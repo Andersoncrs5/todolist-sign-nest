@@ -8,11 +8,13 @@ import { User } from '../user/entities/user.entity';
 import { JwtStrategy } from './jwt.strategy';
 import { UserModule } from 'src/user/user.module';
 import { RecoverPassword } from 'src/user/entities/recoverPassoword.entity';
+import { UserMetricModule } from 'src/user_metric/user_metric.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot(), 
     TypeOrmModule.forFeature([User, RecoverPassword]),
+    UserMetricModule,
     UserModule,
     JwtModule.register({
       secret: process.env.JWT_SECRET,

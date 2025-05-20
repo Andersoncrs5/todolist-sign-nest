@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Your Daily Metrics</title>
+  </head>
+  <body style="font-family: Arial, sans-serif; background-color: #121212; padding: 40px;">
+    <div style="background-color: #ffffff; padding: 40px; border-radius: 12px; max-width: 600px; margin: auto; color: #111;">
+      <h2 style="color: #000000;">Your Daily Metrics 📊</h2>
+      <p>Hello <strong>{{name}}</strong>,</p>
+      <p>Here are your task stats for today:</p>
+
+      <div style="margin: 30px 0;">
+        <p style="font-size: 16px;"><strong>Total Tasks Created Today:</strong> {{totalTasksCreatedToday}}</p>
+        <p style="font-size: 16px;"><strong>Tasks Completed Today:</strong> {{tasksCompletedToday}}</p>
+      </div>
+
+      <p style="text-align: center; margin: 40px 0;">
+        <a href="{{link}}" style="background-color: #000000; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 8px; display: inline-block;">
+          View More in MyTask
+        </a>
+      </p>
+
+      <p>If the button above doesn't work, copy and paste this link into your browser:</p>
+      <p><a href="{{link}}" style="color: #000000;">{{link}}</a></p>
+
+      <p style="margin-top: 40px;">Keep up the great work! 💪<br />— The MyTask Team</p>
+    </div>
+  </body>
+</html>

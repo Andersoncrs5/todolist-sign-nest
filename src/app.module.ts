@@ -8,9 +8,21 @@ import { AuthModule } from './auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
 import { addTransactionalDataSource } from 'typeorm-transactional';
 import { DataSource } from 'typeorm';
+import { UserMetricModule } from './user_metric/user_metric.module';
+import { ScheduleModule } from '@nestjs/schedule';
+import { ThrottlerModule } from '@nestjs/throttler';
 
 @Module({
   imports: [
+    ThrottlerModule.forRoot({
+      throttlers: [
+        {
+          ttl: Number(process.env.TTL),
+          limit: Number(process.env.TIME),
+        },
+      ],
+    }),
+    ScheduleModule.forRoot(),
     ConfigModule.forRoot(),
     TypeOrmModule.forRootAsync({
       useFactory()  {
@@ -38,6 +50,7 @@ import { DataSource } from 'typeorm';
     UserModule,
     TaskModule,
     AuthModule,
+    UserMetricModule,
     
   ],
   

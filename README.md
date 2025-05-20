@@ -1,6 +1,6 @@
 # Task Management API
 
-This project is a task management API built with NestJS, utilizing TypeORM for database interaction and PostgreSQL version 17.2 as the relational database. The API provides endpoints for creating, updating, deleting, and retrieving tasks. Additionally, it includes features such as user authentication with password encryption, protection against XSS attacks, and data validation.
+This project is a task management API built with NestJS, utilizing TypeORM for database interaction and PostgreSQL version 17.2 as the relational database. The API provides endpoints for creating, updating, deleting, and retrieving tasks. Additionally, it includes features such as user authentication with password encryption, protection against XSS attacks, data validation, jwt and nodemailer.
 
 ## Features
 
@@ -15,6 +15,14 @@ Data Validation: Input validation with class-validator and transformation with c
 API Documentation: Interactive API documentation generated with Swagger.
 
 Fastify: Fast and low-overhead HTTP platform for better performance.
+
+JWT
+
+recover password system by email
+
+exceptions globals
+
+versiong api
 
 ## Technologies Used
 
@@ -38,9 +46,9 @@ class-transformer: A library used in combination with class-validator for transf
 
 jwt 
 
-recover password system by email
+corn
 
-exceptions globals
+nodemailer
 
 ## How to Run the Project
 
@@ -70,4 +78,5 @@ http://localhost:3000/api
 
 ## New Features
 
-- recover password system by email
+- metric system with corn 
+- versiong api

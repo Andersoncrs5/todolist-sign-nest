@@ -2,12 +2,11 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
-import { ValidationPipe } from '@nestjs/common'; 
+import { ValidationPipe, VersioningType } from '@nestjs/common'; 
 import { config as dotenvConfig } from 'dotenv';
 import fastifyCors from '@fastify/cors';
 import { AllExceptionsFilter } from './utils/all-exceptions';
 import { initializeTransactionalContext } from 'typeorm-transactional';
-
 
 dotenvConfig();
 
@@ -22,13 +21,18 @@ async function bootstrap() {
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'] 
   });  
 
+  app.enableVersioning({
+    type: VersioningType.URI,
+    defaultVersion: '1',
+  });
+
   app.useGlobalFilters(new AllExceptionsFilter());
 
   app.useGlobalPipes(
     new ValidationPipe({
-      transform: true, 
-      whitelist: true, 
-      forbidNonWhitelisted: true, 
+      transform: Boolean(process.env.TRANSFORM), 
+      whitelist: Boolean(process.env.WHITELIST), 
+      forbidNonWhitelisted: Boolean(process.env.FORBIDNONWHITELISTED), 
     }),
   );
 

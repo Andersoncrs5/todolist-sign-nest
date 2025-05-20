@@ -15,7 +15,7 @@ export class Task {
     @Column({ default: true, nullable: false })
     done: boolean = true;
 
-    @ManyToOne(() => User, (user) => user.tasks, { onDelete : 'CASCADE', nullable: false })
+    @ManyToOne(() => User, (user) => user.tasks, { onDelete : 'CASCADE', nullable: false, eager: true })
     user: User;
 
     @VersionColumn()

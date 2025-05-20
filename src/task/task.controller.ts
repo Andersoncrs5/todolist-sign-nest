@@ -9,7 +9,7 @@ import { Task } from './entities/task.entity';
 
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
-@Controller('task')
+@Controller({path: 'task', version: '1'})
 export class TaskController {
   constructor(private readonly taskService: TaskService) {}
 

@@ -2,6 +2,7 @@ import { BeforeInsert, BeforeUpdate, Column, CreateDateColumn, Entity, OneToMany
 import * as bcrypt from "bcrypt";
 import { Task } from "../../task/entities/task.entity";
 import { RecoverPassword } from "./recoverPassoword.entity";
+import { UserMetric } from "src/user_metric/entities/user_metric.entity";
 
 @Entity()
 export class User {
@@ -28,6 +29,13 @@ export class User {
         onDelete: 'CASCADE',
     })
     recoverPassword: RecoverPassword;
+
+    @OneToOne(() => UserMetric, (metric) => metric, {
+        cascade: true,
+        onDelete: 'CASCADE',
+        eager: true
+    })
+    metric: UserMetric;
 
     @VersionColumn()
     version: number;

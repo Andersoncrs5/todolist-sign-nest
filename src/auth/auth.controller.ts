@@ -8,7 +8,7 @@ import { ApiBody } from '@nestjs/swagger';
 import { RequestPasswordResetDto } from './dtos/RequestPasswordReset.dto';
 import { ResetPasswordDto } from './dtos/ResetPassword.dto';
 
-@Controller('auth')
+@Controller({ path:'auth', version: '1'})
 export class AuthController {
   constructor(private service: AuthService) {}
 
@@ -54,6 +54,13 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   async refreshToken(@Body() refreshTokenDto: RefreshTokenDTO) {
     return await this.service.refreshToken(refreshTokenDto.refresh_token);
+  }
+
+  @Post('/receive-metric-by-email')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  async receiveMetricByEmail(@Req() req) {
+    return await this.service.receiveMetricByEmail(req.user.sub);
   }
 
 }
