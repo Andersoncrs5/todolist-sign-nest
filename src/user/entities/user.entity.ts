@@ -30,11 +30,7 @@ export class User {
     })
     recoverPassword: RecoverPassword;
 
-    @OneToOne(() => UserMetric, (metric) => metric, {
-        cascade: true,
-        onDelete: 'CASCADE',
-        eager: true
-    })
+    @OneToOne(() => UserMetric, (metric) => metric.user)
     metric: UserMetric;
 
     @VersionColumn()

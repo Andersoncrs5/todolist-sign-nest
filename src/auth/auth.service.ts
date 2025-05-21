@@ -56,14 +56,13 @@ export class AuthService {
 
     const payload = { sub: user.id, email: user.email };
 
-
     const accessToken = this.jwtService.sign(payload, { expiresIn: process.env.JWT_EXPIRE_ACCESS_TOKEN });
     const refreshToken = this.jwtService.sign(payload, { expiresIn: process.env.JWT_EXPIRE_REFRESH_TOKEN });
 
     user.refreshToken = refreshToken;
     await this.repository.save(user);
 
-    const metric = await this.metricService.findOne(user)
+    const metric = await this.metricService.findOne(user.id)
     metric.lastLoginAt = new Date()
     await this.metricService.update(user, metric);
 
@@ -245,7 +244,7 @@ export class AuthService {
   @Transactional()
   async receiveMetricByEmail(id: number) {
     const user = await this.userService.findOneAsync(id);
-    const metric = await this.metricService.findOne(user);
+    const metric = await this.metricService.findOne(user.id);
     metric.wishReceiveMetricByEmail = !metric.wishReceiveMetricByEmail
     metric.version = metric.version
 

@@ -33,10 +33,12 @@ export class AllExceptionsFilter implements ExceptionFilter {
       errorResponse = { message: exception.message };
     }
 
-    this.logger.error(
-      `Erro ${status} em ${request.method} ${request.url}: ${message}`,
-      (exception instanceof Error && exception.stack) || JSON.stringify(exception),
-    );
+    if (status >= 500) {
+      this.logger.error(
+        `Erro ${status} em ${request.method} ${request.url}: ${message}`,
+        (exception instanceof Error && exception.stack) || JSON.stringify(exception),
+      );
+    }
 
     response.status(status).send({
       statusCode: status,

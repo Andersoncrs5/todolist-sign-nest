@@ -37,7 +37,7 @@ export class AuthController {
 
   @Post("/register")
   @ApiBody({ type: CreateUserDto })
-  @HttpCode(HttpStatus.OK)
+  @HttpCode(HttpStatus.CREATED)
   async register(@Body() createUserDto: CreateUserDto) {
     return await this.service.createAsync(createUserDto);
   }

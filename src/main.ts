@@ -16,14 +16,13 @@ async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(AppModule, new FastifyAdapter());
 
   await app.register(fastifyCors, {
-    origin: 'http://localhost:5173',
+    origin: 'http://127.0.0.1:3000',
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'] 
   });  
 
   app.enableVersioning({
     type: VersioningType.URI,
-    defaultVersion: '1',
   });
 
   app.useGlobalFilters(new AllExceptionsFilter());

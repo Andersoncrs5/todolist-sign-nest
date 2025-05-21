@@ -12,15 +12,14 @@ export class UserMetricService {
   ) {}
 
   async create(user: User) {
-    const data = { user }
-    const create = await this.repository.create(data);
+    const create = this.repository.create({ user });
     await this.repository.save(create);
   }
 
-  async findOne(user: User): Promise<UserMetric> {
-    if ( user == null ) { throw new BadRequestException('Error the get metric'); }
+  async findOne(id: number): Promise<UserMetric> {
+    if ( id == null ) { throw new BadRequestException('Error the get metric'); }
 
-    const metric: UserMetric | null = await this.repository.findOne({ where: { user } })
+    const metric: UserMetric | null = await this.repository.findOne({ where: { user: { id } } })
 
     if (metric == null) { throw new NotFoundException('metric not found') }
 
@@ -28,7 +27,7 @@ export class UserMetricService {
   }
 
   async update(user:User, metric: UserMetric) {
-    const metricExisting = await this.findOne(user);
+    const metricExisting = await this.findOne(user.id);
     metric.version = metricExisting.version;
 
     await this.repository.update(metricExisting.id, metric);

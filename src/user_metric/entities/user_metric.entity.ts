@@ -6,9 +6,13 @@ export class UserMetric {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @OneToOne(() => User, (user) => user.metric)
+    @OneToOne(() => User, (user) => user.metric, {
+        eager: true,
+        onDelete: "CASCADE",
+        nullable: false
+    })
     @JoinColumn()
-    user: User
+    user: User;
 
     @Column({ default: 0 })
     totalTasksCreated: number = 0; 

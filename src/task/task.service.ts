@@ -75,7 +75,7 @@ export class TaskService {
     const taskData = { ...createTaskDto, user };
     const task: Task = this.repository.create(taskData);
 
-    const metric = await this.metricService.findOne(user)
+    const metric = await this.metricService.findOne(user.id)
     metric.totalTasksCreated += 1;
     metric.totalTasksCreatedToday += 1;
     metric.lastTaskCreatedAt = new Date;
@@ -99,7 +99,7 @@ export class TaskService {
       throw new BadRequestException('User ID is required');
     }
 
-    const task: Task | null = await this.repository.findOne({ where: { id } });
+    const task: Task | null = await this.repository.findOne({ where: { id }, relations: ['user'] } );
 
     if (!task) {
       throw new NotFoundException('Task not found');
@@ -127,7 +127,7 @@ export class TaskService {
     const task = await this.findOne(id); 
     await this.repository.delete(id);
 
-    const metric = await this.metricService.findOne(task.user)
+    const metric = await this.metricService.findOne(task.user.id)
     metric.totalTasksDeleted += 1;
     await this.metricService.update(task.user, metric);
     
@@ -139,7 +139,7 @@ export class TaskService {
     const task: Task = await this.findOne(id);
     task.done = true;
 
-    const metric = await this.metricService.findOne(task.user)
+    const metric = await this.metricService.findOne(task.user.id)
     metric.totalTasksCompleted += 1;
     metric.tasksCompletedToday += 1;
     
